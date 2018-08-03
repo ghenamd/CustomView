@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 public class CustomRectView extends View {
@@ -19,6 +20,9 @@ public class CustomRectView extends View {
     private int mSquareColor;
     private int mSquareSize;
     private Paint mPaintCircle;
+    private float mCircleRadius = 100;
+    private float mCircleX;
+    private float mCircleY;
 
     public CustomRectView(Context context) {
         super(context);
@@ -80,10 +84,48 @@ public class CustomRectView extends View {
         canvas.drawRect(mRect,mPaint);
 
         //Draw circle
-        float cx,cy;
-        float radius = 100f;
-        cx = getWidth() - radius -50f;//50f padding;
-        cy = mRect.top + (mRect.height()/2);
-        canvas.drawCircle(cx,cy,radius,mPaintCircle);
+        if (mCircleX == 0f|| mCircleY == 0f){
+            mCircleX = getWidth()/2;
+            mCircleY = getWidth()/2;
+        }
+
+        canvas.drawCircle(mCircleX,mCircleY,mCircleRadius,mPaintCircle);
+    }
+
+    //Move the circle on touch around the canvas
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch(event.getAction()){
+            case MotionEvent.ACTION_DOWN:{
+                float x = event.getX();
+                float y = event.getY();
+
+                if (mRect.left < x && mRect.right> x)
+                    if (mRect.top < y && mRect.bottom > y){
+                    mCircleRadius += 10f;
+                    postInvalidate();
+                    }
+                return true;
+            }
+            case MotionEvent.ACTION_MOVE:{
+                float x = event.getX();
+                float y = event.getY();
+                //Calculate delta X and delta Y value
+                double dx = Math.pow(x - mCircleX,2);
+                double dy = Math.pow(y - mCircleY,2);
+                if (dx + dy < Math.pow(mCircleRadius,2)){
+                    //Touched
+                    mCircleY = y;
+                    mCircleX = x;
+                    postInvalidate();
+
+                    return true;
+
+                }
+
+                return true;
+            }
+        }
+        return super.onTouchEvent(event);
     }
 }
